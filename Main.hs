@@ -18,8 +18,8 @@ main = do
 process :: [String] -> IO ()
 process args = do
     -- Parse cmd line options
-    let isText = isOption "-t" args
-    let isKey = isOption "-k" args
+    let isText = elem "-t" args
+    let isKey = elem "-k" args
     let dbFilename = getDbFilename args
     let inputFilename = getInputFilename args
     dbFileContents <- readFile dbFilename
@@ -31,4 +31,4 @@ process args = do
     let (key, text) = decipher dbFileContents inputFileContents
     -- Output results
     when isKey (putStrLn $ "Key: " ++ key)
-    when isText (putStr $ "Deciphered text: " ++ text)
+    when isText (putStrLn $ "Deciphered text: " ++ text)

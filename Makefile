@@ -7,11 +7,8 @@ NAME = subs-cipher
 
 .PHONY: clean
 
-%.o: %.hs
-	$(HC) $(HFLAGS) -c $^
-
-$(NAME): *.o
-	$(HC) $(HFLAGS) $^ -o $@
+$(NAME):
+	$(HC) $(HFLAGS) --make Main.hs -o $@
 
 clean:
 	rm -f $(NAME) *.o *.hi
