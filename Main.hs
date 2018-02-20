@@ -21,14 +21,14 @@ process args = do
     let isText = "-t" `elem` args
     let isKey = "-k" `elem` args
     let dbFilename = getDbFilename args
-    let inputFilename = last args
+    let cyphertextFilename = last args
     dbFileContents <- readFile dbFilename
-    inputFileContents <-
-        if dbFilename == inputFilename
-            -- If filenames are equal, there is no input file, read from stdin
+    cyphertextFileContents <-
+        if dbFilename == cyphertextFilename
+            -- If filenames are equal, there is no cyphertext file, read from stdin
             then getLine
-            else readFile inputFilename
-    let (key, text) = decipher dbFileContents inputFileContents
+            else readFile cyphertextFilename
+    let (key, text) = decipher dbFileContents cyphertextFileContents
     -- Output results
     when isKey (putStrLn $ "Key: " ++ key)
     when isText (putStrLn $ "Deciphered text: " ++ text)

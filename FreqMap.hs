@@ -5,16 +5,15 @@ module FreqMap where
 import Data.Char
 import qualified Data.Map as Map
 
--- Type representing one row from the frequency database
---data FreqPair = FreqPair String Float deriving (Show)
-
 -- Type representing the whole frequency database
 type FreqMap = Map.Map String Float
 
+-- Perform a frequency analysis on the cyphertext
 freqAnalysis :: String -> FreqMap
-freqAnalysis input = Map.map (/ sum (Map.elems m)) m
-    where m = getOccurences input
+freqAnalysis cyphertext = Map.map ((100 *) . (/ sum (Map.elems m))) m
+    where m = getOccurences cyphertext
 
+-- Count occurences of characters in the cyphertext and store them in map
 getOccurences :: String -> FreqMap
 getOccurences [] = Map.fromList []
 getOccurences (x:xs)
