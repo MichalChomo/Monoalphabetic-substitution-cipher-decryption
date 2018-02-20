@@ -9,6 +9,3 @@ getDbFilename args
 
 getOneBeforeLast :: [String] -> String
 getOneBeforeLast args = args !! (length args - 2)
-
-getInputFilename :: [String] -> String
-getInputFilename = last
