@@ -5,10 +5,10 @@ HC = ghc
 HFLAGS = -Wall
 NAME = subs-cipher
 
-.PHONY: clean
+.PHONY: all clean
 
-$(NAME):
-	$(HC) $(HFLAGS) --make Main.hs -o $@
+all:
+	$(HC) $(HFLAGS) --make Main.hs -o $(NAME)
 
 clean:
 	rm -f $(NAME) *.o *.hi

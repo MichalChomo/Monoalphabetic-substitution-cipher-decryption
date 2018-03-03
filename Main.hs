@@ -2,6 +2,7 @@
 -- xchomo01, Michal Chomo
 import System.Environment
 import Control.Monad
+import Data.Char
 import Parsing
 import Decipher
 
@@ -10,9 +11,9 @@ main = do
     args <- getArgs
     -- Check count of arguments
     if length args < 2
-        then putStrLn "Too few arguments"
+        then error "Too few arguments"
         else if length args > 4
-                then putStrLn "Too many arguments"
+                then error "Too many arguments"
                 else process args
 
 process :: [String] -> IO ()
@@ -21,14 +22,14 @@ process args = do
     let isText = "-t" `elem` args
     let isKey = "-k" `elem` args
     let dbFilename = getDbFilename args
-    let cyphertextFilename = last args
+    let ciphertextFilename = last args
     dbFileContents <- readFile dbFilename
-    cyphertextFileContents <-
-        if dbFilename == cyphertextFilename
-            -- If filenames are equal, there is no cyphertext file, read from stdin
+    ciphertextFileContents <-
+        if dbFilename == ciphertextFilename
+            -- If filenames are equal, there is no ciphertext file, read from stdin
             then getLine
-            else readFile cyphertextFilename
-    let (key, text) = decipher dbFileContents cyphertextFileContents
+            else readFile ciphertextFilename
+    let (key, text) = decipher dbFileContents $ filter isLetter ciphertextFileContents
     -- Output results
     when isKey (putStrLn $ "Key: " ++ key)
     when isText (putStrLn $ "Deciphered text: " ++ text)
