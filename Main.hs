@@ -31,5 +31,5 @@ process args = do
             else readFile ciphertextFilename
     let (key, text) = decipher dbFileContents $ filter isLetter ciphertextFileContents
     -- Output results
-    when isKey (putStrLn $ "Key: " ++ key)
-    when isText (putStrLn $ "Deciphered text: " ++ text)
+    when isKey (putStrLn $ "Key:\n" ++ key)
+    when isText (putStrLn $ "Deciphered text:\n" ++ text)

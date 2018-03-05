@@ -6,28 +6,50 @@ import qualified Data.Map as Map
 import FreqMap
 
 decipher :: String -> String -> (String, String)
-decipher db ciphertext = (show (getFinalKey db ciphertext), show (applyKey ciphertext (getFinalKey db ciphertext)))
+--decipher db ciphertext = (show (getFinalKey db ciphertext), show (applyKey ciphertext (getCombinedKey db ciphertext)))
+decipher db ciphertext = ((getKeyString (getFinalKey db ciphertext)), show (applyKey ciphertext (getFinalKey db ciphertext)))
+
+getKeyString :: [(Char, Char)] -> String
+getKeyString key = snd (keysValues key) ++ "\n" ++ fst (keysValues key)
+    where keysValues = unzip . reverse . sortByValue
 
 -- Substitute letters in text according to key
-applyKey :: String -> [(String, String)] -> String
-applyKey ciphertext key =
-    map (\x -> head (Map.findWithDefault [] [x] (Map.fromList key))) ciphertext
+applyKey :: String -> [(Char, Char)] -> String
+applyKey ciphertext key = map getValChar ciphertext
+    where getValChar x = Map.findWithDefault [] x (Map.fromList key)
 
-getFinalKey :: String -> String -> [(String, String)]
-getFinalKey db ciphertext = combineKeys (combineKeys (getKey (freqAnalysisLetter ciphertext) (parseFreqMapLetter db)) (removeDuplicatesFromKey (getKey (freqAnalysisDigram ciphertext) (parseFreqMapDigram db)))) (removeDuplicatesFromTrigramKey (getKey (freqAnalysisTrigram ciphertext) (parseFreqMapTrigram db)))
+getFinalKey :: String -> String -> [(Char, Char)]
+getFinalKey db ciphertext = get (getCombinedKey db ciphertext) [] []
+    where get [] xs _ = xs
+          get (x:xs) final used = get xs ((getKeyChar x, if getValChar x `elem` used then '-' else getValChar x) : final) (used ++ [getValChar x])
+          getKeyChar (a, _) = head a
+          getValChar (_, b) = head b
 
-getKey :: FreqMap -> FreqMap -> [(String, String)]
-getKey fa db = zip (map fst fa) (map fst db)
+getCombinedKey :: String -> String -> [(String, String)]
+--getCombinedKey db ciphertext = map (\(x, y) -> (x, getMostFrequentChar y)) $ combineKeys (combineKeys (getKey (freqAnalysisLetter ciphertext) (parseFreqMapLetter db)) (removeDuplicatesFromDigramKey (getKey (freqAnalysisDigram ciphertext) (parseFreqMapDigram db)))) (removeDuplicatesFromTrigramKey (getKey (freqAnalysisTrigram ciphertext) (parseFreqMapTrigram db)))
+getCombinedKey db ciphertext = combineKeys (combineKeys (getKey (freqAnalysisLetter ciphertext) (parseFreqMapLetter db)) (removeDuplicatesFromDigramKey (getKey (freqAnalysisDigram ciphertext) (parseFreqMapDigram db)))) (removeDuplicatesFromTrigramKey (getKey (freqAnalysisTrigram ciphertext) (parseFreqMapTrigram db)))
 
 combineKeys :: [(String, String)] -> [(String, String)] -> [(String, String)]
-combineKeys key gramKey = Map.toList $ Map.union (Map.fromList gramKey) (Map.fromList key)
+--combineKeys key gramKey = Map.toList $ Map.union (Map.fromList gramKey) (Map.fromList key)
+combineKeys key gramKey = Map.toList $ Map.unionWith (++) (Map.fromList gramKey) (Map.fromList key)
 
 -- Remove duplicate keys, keep the ones closest to the start of the list
-removeDuplicatesFromKey :: [(String, String)] -> [(String, String)]
-removeDuplicatesFromKey l = Map.toList $ Map.fromList $ reverse $ getKeyFromDigram l
+removeDuplicatesFromDigramKey :: [(String, String)] -> [(String, String)]
+removeDuplicatesFromDigramKey l = Map.toList $ Map.fromList $ reverse $ getKeyFromDigram l
+--removeDuplicatesFromDigramKey l = Map.toList $ Map.fromListWith (++) $ reverse $ getKeyFromDigram l
 
 removeDuplicatesFromTrigramKey :: [(String, String)] -> [(String, String)]
 removeDuplicatesFromTrigramKey l = Map.toList $ Map.fromList $ reverse $ getKeyFromTrigram l
+--removeDuplicatesFromTrigramKey l = Map.toList $ Map.fromListWith (++) $ reverse $ getKeyFromTrigram l
+
+getKey :: FreqMap -> FreqMap -> [(String, String)]
+getKey fa db = zip (map fst (addMissingLetters fa)) (map fst db)
+
+-- Add missing letters to the frequency map
+addMissingLetters :: FreqMap -> FreqMap
+addMissingLetters fa = sortByValue $ Map.toList $ Map.union
+                        (Map.fromList fa) (Map.fromList getZeroFreqMap)
+    where getZeroFreqMap = map (\x -> ([x], 0.0)) ['a'..'z']
 
 getKeyFromDigram :: [(String, String)] -> [(String, String)]
 getKeyFromDigram [] = []
