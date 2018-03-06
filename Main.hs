@@ -2,9 +2,8 @@
 -- xchomo01, Michal Chomo
 import System.Environment
 import Control.Monad
-import Data.Char
 import Parsing
-import Decipher
+import KeyUtils
 
 main :: IO ()
 main = do
@@ -23,13 +22,13 @@ process args = do
     let isKey = "-k" `elem` args
     let dbFilename = getDbFilename args
     let ciphertextFilename = last args
-    dbFileContents <- readFile dbFilename
-    ciphertextFileContents <-
+    db <- readFile dbFilename
+    ciphertext <-
         if dbFilename == ciphertextFilename
             -- If filenames are equal, there is no ciphertext file, read from stdin
             then getLine
             else readFile ciphertextFilename
-    let (key, text) = decipher dbFileContents $ filter isLetter ciphertextFileContents
     -- Output results
-    when isKey (putStrLn $ "Key:\n" ++ key)
-    when isText (putStrLn $ "Deciphered text:\n" ++ text)
+    --when isKey (putStrLn $ "Key:\n" ++ getKeyString (getFinalKey db ciphertext))
+    when isKey (putStrLn $ "Key:\n" ++ show (getFinalKey db ciphertext))
+    when isText (putStrLn $ "Deciphered text:\n" ++ show (applyKey ciphertext (getFinalKey db ciphertext)))
