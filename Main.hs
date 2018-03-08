@@ -2,8 +2,10 @@
 -- xchomo01, Michal Chomo
 import System.Environment
 import Control.Monad
+import Data.Char
 import Parsing
 import KeyUtils
+import FreqMap
 
 main :: IO ()
 main = do
@@ -29,6 +31,7 @@ process args = do
             then getLine
             else readFile ciphertextFilename
     -- Output results
-    --when isKey (putStrLn $ "Key:\n" ++ getKeyString (getFinalKey db ciphertext))
-    when isKey (putStrLn $ "Key:\n" ++ show (getFinalKey db ciphertext))
-    when isText (putStrLn $ "Deciphered text:\n" ++ show (applyKey ciphertext (getFinalKey db ciphertext)))
+    let ct = filter isLetter ciphertext
+    when isKey (putStrLn $ "Key:\n" ++ formatKey (getFinalKey db ct))
+    --when isKey (putStrLn $ "Key:\n" ++ show (getCombinedKey db ct))
+    when isText (putStrLn $ "Deciphered text:\n" ++ show (applyKey ct (getFinalKey db ct)))
