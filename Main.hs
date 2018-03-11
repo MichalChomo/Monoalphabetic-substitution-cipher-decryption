@@ -6,14 +6,17 @@ import Data.Char
 import KeyUtils
 import FreqMap
 
+usage :: String
+usage = "./subs-cipher [-k] [-t] frequency_database [ciphertext]"
+
 main :: IO ()
 main = do
     args <- getArgs
     -- Check count of arguments
     if length args < 2
-        then error "Too few arguments"
+        then error usage
         else if length args > 4
-                then error "Too many arguments"
+                then error usage
                 else process args
 
 -- Process arguments and print the result
