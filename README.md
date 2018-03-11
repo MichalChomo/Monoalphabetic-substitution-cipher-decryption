@@ -10,3 +10,12 @@ This is a project for Functional and Logic Programming course. It is an applicat
 8. Mapping of ciphertext trigrams to plaintext trigrams is created according to frequency database, this is then converted to mapping of letter to letter -> trigram key
 9. Existing key (combined letter and digram keys) and trigram key are combined, when ciphertext letters match, trigram key has priority, so its plaintext is used -> final key
 10. Final key is modified so it does not contain two ciphertext letters mapping to the same plaintext letter, if some ciphertext letters do not have a plaintext letter mapping, '-' is used.
+
+*Usage:*
+./subs-cipher [-k] [-t] frequency_database [ciphertext]
+| Argument           | Meaning                                                      |
+|--------------------|--------------------------------------------------------------|
+| -k                 | output key                                                   |
+| -t                 | output deciphered text                                       |
+| frequency_database | file containing frequency database                           |
+| [ciphertext]       | file containing frequency database, stdin is used if missing |
