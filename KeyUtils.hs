@@ -7,12 +7,15 @@ import Data.Maybe
 import qualified Data.Map as Map
 import FreqMap
 
+-- Resulting mapping of ciphertext letters to plaintext letters, one to one
 type KeyMapChar = [(Char, Char)]
+-- Mapping of ciphertext letters to plaintext letters, String because of
+-- digrams and trigrams
 type KeyMapString = [(String, String)]
 
--- Get string in format:
+-- Get key in format:
 -- plaintext alphabet
--- key
+-- ciphertext letters
 formatKey :: KeyMapChar -> String
 formatKey key = snd (keysValues key) ++ "\n" ++ fst (keysValues key)
     where keysValues = unzip . reverse . sortByValue
@@ -33,12 +36,19 @@ getFinalKey db ciphertext = get (getCombinedKey db ciphertext) [] []
               | x `elem` used = findNotUsed used xs
               | otherwise = x
 
+-- Get key that is composed of keys from frequency analysis of letters, digrams
+-- and trigrams
 getCombinedKey :: String -> String -> KeyMapString
---getCombinedKey db ciphertext = map (\(x, y) -> (x, getMostFrequentChar y)) $ combineKeys (combineKeys (getKeyMapString (freqAnalysisLetter ciphertext) (parseFreqMapLetter db)) (removeDuplicatesFromDigramKey (getKeyMapString (freqAnalysisDigram ciphertext) (parseFreqMapDigram db)))) (removeDuplicatesFromTrigramKey (getKeyMapString (freqAnalysisTrigram ciphertext) (parseFreqMapTrigram db)))
-getCombinedKey db ciphertext = combineKeys (combineKeys (getKeyMapString (freqAnalysisLetter ciphertext) (parseFreqMapLetter db)) (removeDuplicatesFromDigramKey (getKeyMapString (freqAnalysisDigram ciphertext) (parseFreqMapDigram db)))) (removeDuplicatesFromTrigramKey (getKeyMapString (freqAnalysisTrigram ciphertext) (parseFreqMapTrigram db)))
+getCombinedKey db ciphertext =
+    combineKeys
+    (combineKeys
+        (getKeyMapString (addMissingLetters (freqAnalysisLetter ciphertext)) (parseFreqMapLetter db))
+        (nubTuple (getKeyFromDigram (getKeyMapString (freqAnalysisDigram ciphertext) (parseFreqMapDigram db)))))
+    (nubTuple (getKeyFromTrigram (getKeyMapString (freqAnalysisTrigram ciphertext) (parseFreqMapTrigram db))))
 
+-- Combine keys, gramKey has priority, so if ciphertext letter is the same in
+-- key and gramKey, plaintext letter from gramKey is used
 combineKeys :: KeyMapString -> KeyMapString -> KeyMapString
---combineKeys key gramKey = Map.toList $ Map.union (Map.fromList gramKey) (Map.fromList key)
 combineKeys key gramKey = combine key gramKey
     where combine k [] = k
           combine k ((x, y):xs) = combine (map (replace (x, y)) k) xs
@@ -46,13 +56,7 @@ combineKeys key gramKey = combine key gramKey
             | a == c = (a, b)
             | otherwise = (c, d)
 
--- Remove duplicate keys, keep the ones closest to the start of the list
-removeDuplicatesFromDigramKey :: KeyMapString -> KeyMapString
-removeDuplicatesFromDigramKey key = nubTuple $ getKeyFromDigram key
-
-removeDuplicatesFromTrigramKey :: KeyMapString -> KeyMapString
-removeDuplicatesFromTrigramKey key = nubTuple $ getKeyFromTrigram key
-
+-- Remove tuples with duplicate keys, keep the one closest to the start of the list
 nubTuple :: KeyMapString -> KeyMapString
 nubTuple key = nubBy isKeyEq key
     where
@@ -60,8 +64,9 @@ nubTuple key = nubBy isKeyEq key
           | a == c = True
           | otherwise = False
 
+-- Get mapping of ciphertext letters/digrams/trigrams to plaintext letters/
+-- digrams/trigrams from two frequency maps
 getKeyMapString :: FreqMap -> FreqMap -> KeyMapString
---getKeyMapString fa db = zip (map fst (addMissingLetters fa)) (map fst db)
 getKeyMapString fa db = zip (map fst fa) (map fst db)
 
 -- Add missing letters with zero frequency to the frequency map
@@ -70,10 +75,14 @@ addMissingLetters fa = sortByValue $ Map.toList $ Map.union
                         (Map.fromList fa) (Map.fromList getZeroFreqMap)
     where getZeroFreqMap = map (\x -> ([x], 0.0)) ['a'..'z']
 
+-- Get mapping of one letter to one letter instead of digram to digram
 getKeyFromDigram :: KeyMapString -> KeyMapString
 getKeyFromDigram [] = []
 getKeyFromDigram ((x, y):xs) = [(take 1 x, take 1 y), (drop 1 x, drop 1 y)]  ++ getKeyFromDigram xs
 
+-- Get mapping of one letter to one letter instead of trigram to trigram
 getKeyFromTrigram :: KeyMapString -> KeyMapString
 getKeyFromTrigram [] = []
-getKeyFromTrigram ((x, y):xs) = [(take 1 x, take 1 y), (drop 1 (take 2 x), drop 1 (take 2 y)), (drop 2 x, drop 2 y)]  ++ getKeyFromTrigram xs
+getKeyFromTrigram ((x, y):xs) =
+    [(take 1 x, take 1 y), (drop 1 (take 2 x), drop 1 (take 2 y)),
+    (drop 2 x, drop 2 y)]  ++ getKeyFromTrigram xs

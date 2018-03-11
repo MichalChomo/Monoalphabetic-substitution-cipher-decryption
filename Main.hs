@@ -3,7 +3,6 @@
 import System.Environment
 import Control.Monad
 import Data.Char
-import Parsing
 import KeyUtils
 import FreqMap
 
@@ -17,6 +16,7 @@ main = do
                 then error "Too many arguments"
                 else process args
 
+-- Process arguments and print the result
 process :: [String] -> IO ()
 process args = do
     -- Parse cmd line options
@@ -35,3 +35,13 @@ process args = do
     when isKey (putStrLn $ "Key:\n" ++ formatKey (getFinalKey db ct))
     --when isKey (putStrLn $ "Key:\n" ++ show (getCombinedKey db ct))
     when isText (putStrLn $ "Deciphered text:\n" ++ show (applyKey ct (getFinalKey db ct)))
+
+-- Get name of the file with frequency database
+getDbFilename :: [String] -> String
+getDbFilename args
+    | head (getOneBeforeLast args) == '-' = last args
+    | otherwise = getOneBeforeLast args
+
+-- Get element before the last element in list
+getOneBeforeLast :: [String] -> String
+getOneBeforeLast args = args !! (length args - 2)

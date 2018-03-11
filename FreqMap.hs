@@ -8,19 +8,22 @@ import Data.Ord
 -- Type representing the whole frequency database
 type FreqMap = [(String, Float)]
 
--- Perform a frequency analysis on the ciphertext
+-- Compute frequency from count of occurences of letters/digrams/trigrams
 freqAnalysis :: FreqMap -> FreqMap
 freqAnalysis occurenceMap = sortByValue $
     map (\x -> (fst x, 100 * snd x / sumValues occurenceMap)) occurenceMap
 
+-- Perform frequency analysis on letters in string
 freqAnalysisLetter :: String -> FreqMap
 freqAnalysisLetter ciphertext = freqAnalysis $ getOccurences ciphertext
 
+-- Perform frequency analysis on digrams in string
 freqAnalysisDigram :: String -> FreqMap
-freqAnalysisDigram ciphertext = freqAnalysis $ getOccurencesDigram ciphertext
+freqAnalysisDigram ciphertext = freqAnalysis $ getOccurencesGram 2 ciphertext
 
+-- Perform frequency analysis on trigrams in string
 freqAnalysisTrigram :: String -> FreqMap
-freqAnalysisTrigram ciphertext = freqAnalysis $ getOccurencesTrigram ciphertext
+freqAnalysisTrigram ciphertext = freqAnalysis $ getOccurencesGram 3 ciphertext
 
 -- Count occurences of characters in text and store them in map
 getOccurences :: String -> FreqMap
@@ -28,15 +31,7 @@ getOccurences [] = []
 getOccurences text = map (\x -> ([head x], fromIntegral $ length x)) $
     group . sort $ text
 
-getOccurencesDigram :: String -> FreqMap
-getOccurencesDigram [] = []
-getOccurencesDigram text = getOccurencesGram 2 text
-
-getOccurencesTrigram :: String -> FreqMap
-getOccurencesTrigram [] = []
-getOccurencesTrigram text = getOccurencesGram 3 text
-
--- Count occurences of n-grams in text and store them in map
+-- Count occurences of n-grams in text and store them in FreqMap
 getOccurencesGram :: Int -> String -> FreqMap
 getOccurencesGram _ [] = []
 getOccurencesGram n text = go $ chunksOf n text ++ chunksOf n (tail text)
@@ -46,26 +41,34 @@ getOccurencesGram n text = go $ chunksOf n text ++ chunksOf n (tail text)
           go l = (head l, fromIntegral (getGramCount (head l) l)) :
             go (removeGram (head l) l)
 
+-- Parse frequency map from string and store it to FreqMap
+-- len determines if frequency map is of letters/digrams/trigrams
 parseFreqMap :: Int -> String -> FreqMap
 parseFreqMap len dbString = map getPair $ filter (isLen len) $ lines dbString
 
+-- Parse frequency map of letters
 parseFreqMapLetter :: String -> FreqMap
 parseFreqMapLetter = parseFreqMap 1
 
+-- Parse frequency map of digrams
 parseFreqMapDigram :: String -> FreqMap
 parseFreqMapDigram = parseFreqMap 2
 
+-- Parse frequency map of trigrams
 parseFreqMapTrigram :: String -> FreqMap
 parseFreqMapTrigram = parseFreqMap 3
 
+-- Get pair of letter/digram/trigram and its frequency
 getPair :: String -> (String, Float)
 getPair line = (head (words line), read (last (words line)) :: Float)
 
+-- Check if line from frequency db contains string of len characters
 isLen :: Int -> String -> Bool
 isLen len line
     | length (head $ words line) == len = True
     | otherwise = False
 
+-- Sort list of key/value pairs by value
 sortByValue :: Ord v => [(k, v)] -> [(k, v)]
 sortByValue = sortBy $ flip $ comparing snd
 
@@ -76,6 +79,6 @@ chunksOf n l
     | n > 0 = take n l : chunksOf n (drop n l)
     | otherwise = chunksOf 1 l
 
--- Return sum of all values in frequency map
+-- Return sum of all values in the occurence map
 sumValues :: FreqMap -> Float
-sumValues l = sum $ map snd l
+sumValues occurenceMap = sum $ map snd occurenceMap
