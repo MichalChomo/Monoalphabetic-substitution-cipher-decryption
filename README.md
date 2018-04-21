@@ -13,9 +13,7 @@ This is a project for Functional and Logic Programming course. It is an applicat
 
 *Usage:*
 ./subs-cipher [-k] [-t] frequency_database [ciphertext]
-| Argument           | Meaning                                                      |
-|--------------------|--------------------------------------------------------------|
-| -k                 | output key                                                   |
-| -t                 | output deciphered text                                       |
-| frequency_database | file containing frequency database                           |
-| [ciphertext]       | file containing frequency database, stdin is used if missing |
+* -k                  output key                                                  
+* -t                  output deciphered text                                      
+* frequency_database  file containing frequency database                          
+* [ciphertext]        file containing frequency database, stdin is used if missing
