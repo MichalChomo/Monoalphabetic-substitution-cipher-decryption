@@ -4,7 +4,6 @@ import System.Environment
 import Control.Monad
 import Data.Char
 import KeyUtils
-import FreqMap
 
 usage :: String
 usage = "./subs-cipher [-k] [-t] frequency_database [ciphertext]"
@@ -36,7 +35,6 @@ process args = do
     -- Output results
     let ct = filter isLetter ciphertext
     when isKey (putStrLn $ "Key:\n" ++ formatKey (getFinalKey db ct))
-    --when isKey (putStrLn $ "Key:\n" ++ show (getCombinedKey db ct))
     when isText (putStrLn $ "Deciphered text:\n" ++ show (applyKey ct (getFinalKey db ct)))
 
 -- Get name of the file with frequency database
